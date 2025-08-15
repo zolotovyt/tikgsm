@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Админ — TikGSM</title>
+  <style>
+    body{font-family:Arial,system-ui;background:#f4f4f4;margin:0}
+    header{background:#000;color:#fff;padding:14px 20px;text-align:center;font-weight:700;font-size:20px}
+    main{max-width:500px;margin:24px auto;background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,.08)}
+    label{display:block;margin-top:12px;font-weight:600}
+    input,textarea{width:100%;padding:10px;margin-top:6px;border:1px solid #ccc;border-radius:8px;font-size:14px}
+    button{margin-top:16px;width:100%;padding:12px;background:#27ae60;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:600;cursor:pointer}
+    button:hover{background:#219150}
+    .msg{margin-top:12px;font-size:14px}
+  </style>
+</head>
+<body>
+  <header>Админ — TikGSM</header>
+  <main>
+    <label>Пароль:</label>
+    <input type="password" id="pass" placeholder="Введите пароль">
+    <button id="checkPass">Войти</button>
+
+    <div id="formBlock" style="display:none">
+      <label>Название:</label>
+      <input id="name" type="text" placeholder="Например: iPhone 14 Pro">
+
+      <label>Цена:</label>
+      <input id="price" type="text" placeholder="Например: 1200$">
+
+      <label>Описание:</label>
+      <textarea id="description" placeholder="Краткое описание"></textarea>
+
+      <label>Ссылка на картинку:</label>
+      <input id="image" type="text" placeholder="https://i.imgur.com/xxxx.jpg">
+
+      <button id="addBtn">Добавить товар</button>
+      <div class="msg" id="msg"></div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, set, get, child } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDv8hgKDI_4GFyJAuKMZU8qPOxNhLc_Ilc",
+      authDomain: "tikgsm.firebaseapp.com",
+      projectId: "tikgsm",
+      storageBucket: "tikgsm.firebasestorage.app",
+      messagingSenderId: "311832408580",
+      appId: "1:311832408580:web:4f8f622a5333bf95457b51",
+      measurementId: "G-WHT99GXH1Y",
+      databaseURL: "https://tikgsm-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+
+    let firebasePassword = "";
+
+    // Загружаем пароль из Firebase
+    get(child(ref(db), "adminPassword")).then(snapshot => {
+      if (snapshot.exists()) {
+        firebasePassword = snapshot.val();
+      } else {
+        alert("Пароль администратора не найден в базе!");
+      }
+    });
+
+    const passInput = document.getElementById("pass");
+    const checkPass = document.getElementById("checkPass");
+    const formBlock = document.getElementById("formBlock");
+    const msg = document.getElementById("msg");
+
+    checkPass.addEventListener("click", () => {
+      if (passInput.value === firebasePassword) {
+        formBlock.style.display = "block";
+        passInput.style.display = "none";
+        checkPass.style.display = "none";
+      } else {
+        alert("Неверный пароль!");
+      }
+    });
+
+    document.getElementById("addBtn").addEventListener("click", () => {
+      const name = document.getElementById("name").value.trim();
+      const price = document.getElementById("price").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const image = document.getElementById("image").value.trim();
+
+      if (!name || !price || !description || !image) {
+        msg.textContent = "Заполните все поля!";
+        msg.style.color = "red";
+        return;
+      }
+
+      const newProductRef = push(ref(db, "products"));
+      set(newProductRef, { name, price, description, image })
+        .then(() => {
+          msg.textContent = "Товар добавлен!";
+          msg.style.color = "green";
+          document.getElementById("name").value = "";
+          document.getElementById("price").value = "";
+          document.getElementById("description").value = "";
+          document.getElementById("image").value = "";
+        })
+        .catch(() => {
+          msg.textContent = "Ошибка при добавлении!";
+          msg.style.color = "red";
+        });
+    });
+  </script>
+</body>
+</html>

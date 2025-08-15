@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TikGSM — Каталог</title>
+  <style>
+    body {
+      font-family: Arial, system-ui;
+      margin: 0;
+      background: #f9f9f9;
+    }
+    header {
+      background: #000;
+      color: white;
+      padding: 14px 20px;
+      text-align: center;
+      font-weight: bold;
+      font-size: 20px;
+    }
+    main {
+      max-width: 1100px;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      padding: 0 12px;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    .card img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+    }
+    .card-content {
+      padding: 14px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 18px;
+      color: #333;
+    }
+    .card p {
+      margin: 0 0 12px;
+      font-size: 14px;
+      color: #666;
+      flex: 1;
+    }
+    .price {
+      font-size: 16px;
+      font-weight: bold;
+      color: #27ae60;
+    }
+  </style>
+</head>
+<body>
+  <header>TikGSM — Каталог</header>
+  <main id="productList"></main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDv8hgKDI_4GFyJAuKMZU8qPOxNhLc_Ilc",
+      authDomain: "tikgsm.firebaseapp.com",
+      projectId: "tikgsm",
+      storageBucket: "tikgsm.firebasestorage.app",
+      messagingSenderId: "311832408580",
+      appId: "1:311832408580:web:4f8f622a5333bf95457b51",
+      measurementId: "G-WHT99GXH1Y",
+      databaseURL: "https://tikgsm-default-rtdb.europe-west1.firebasedatabase.app"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+    const productList = document.getElementById("productList");
+
+    // Реальное обновление списка при изменении в базе
+    onValue(ref(db, "products"), (snapshot) => {
+      productList.innerHTML = "";
+      snapshot.forEach(child => {
+        const data = child.val();
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <img src="${data.image}" alt="${data.name}">
+          <div class="card-content">
+            <h3>${data.name}</h3>
+            <p>${data.description}</p>
+            <div class="price">${data.price}</div>
+          </div>
+        `;
+        productList.appendChild(card);
+      });
+    });
+  </script>
+</body>
+</html>
